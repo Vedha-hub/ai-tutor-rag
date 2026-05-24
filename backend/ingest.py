@@ -29,14 +29,17 @@ def load_and_chunk_pdf(file_path: str) -> list:
     print(f"Split into {len(chunks)} chunks.")
     return chunks
 
-def store_in_chromadb(chunks: list) -> Chroma:
+def store_in_chromadb(chunks: list):
+    """Embed chunks and store in ChromaDB using new API."""
+    import chromadb
+    client = chromadb.PersistentClient(path=CHROMA_DIR)
+    
     vectorstore = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings_model,
-        persist_directory=CHROMA_DIR
+        client=client
     )
-    vectorstore.persist()
-    print(f"Stored chunks in ChromaDB at {CHROMA_DIR}")
+    print(f"Stored {len(chunks)} chunks in ChromaDB at {CHROMA_DIR}")
     return vectorstore
 
 def ingest_pdf(file_path: str) -> dict:
@@ -44,10 +47,13 @@ def ingest_pdf(file_path: str) -> dict:
     store_in_chromadb(chunks)
     return {"status": "success", "chunks_created": len(chunks)}
 
-def get_vectorstore() -> Chroma:
+def get_vectorstore():
+    """Load existing ChromaDB."""
+    import chromadb
+    client = chromadb.PersistentClient(path=CHROMA_DIR)
     return Chroma(
-        persist_directory=CHROMA_DIR,
-        embedding_function=embeddings_model
+        embedding_function=embeddings_model,
+        client=client
     )
 
 if __name__ == "__main__":
