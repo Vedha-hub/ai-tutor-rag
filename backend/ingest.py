@@ -4,7 +4,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 
 load_dotenv()
@@ -13,6 +13,9 @@ CHROMA_DIR = "./chroma_db"
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
 
+embeddings_model = HuggingFaceEmbeddings(
+    model_name="all-MiniLM-L6-v2"
+)
 
 def load_and_chunk_pdf(file_path: str) -> list:
     loader = PyPDFLoader(file_path)
@@ -46,3 +49,7 @@ def get_vectorstore() -> Chroma:
         persist_directory=CHROMA_DIR,
         embedding_function=embeddings_model
     )
+
+if __name__ == "__main__":
+    result = ingest_pdf("../course.pdf")
+    print(result)
