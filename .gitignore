@@ -7,3 +7,6 @@ chroma_db/
 tmp/
 *.pdf
 .vscode/
+myenv/
+venv/
+venv_old/
