@@ -3,10 +3,15 @@ import shutil
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from pydantic import BaseModel
 
 load_dotenv()
 
-app = FastAPI(title="AI Tutor API", version="1.0.0")
+app = FastAPI(
+    title="AI Tutor API",
+    description="RAG-based tutoring system",
+    version="1.0.0"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,3 +43,18 @@ async def ingest_document(file: UploadFile = File(...)):
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
+
+class QuestionRequest(BaseModel):
+    question: str
+    session_id: str = "default"
+
+@app.post("/ask")
+async def ask_tutor(request: QuestionRequest):
+    if not request.question.strip():
+        raise HTTPException(status_code=400, detail="Question cannot be empty")
+    try:
+        from rag import ask_question
+        result = ask_question(request.question)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
