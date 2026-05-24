@@ -6,8 +6,6 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
 
 CHROMA_DIR = "./chroma_db"
 CHUNK_SIZE = 500
