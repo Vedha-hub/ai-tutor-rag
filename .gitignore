@@ -10,3 +10,4 @@ tmp/
 myenv/
 venv/
 venv_old/
+start.bat
