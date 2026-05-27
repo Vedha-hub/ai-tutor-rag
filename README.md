@@ -75,7 +75,7 @@ ai-tutor-rag/
 ## 👥 Team
 - Member A (Vedha): RAG pipeline, ChromaDB, 
   embeddings, quiz generation
-- Member B (Selli): Streamlit UI, FastAPI 
+- Member B (Sirisha): Streamlit UI, FastAPI 
   endpoints, memory management
 
 ## 📊 Weekly Progress
