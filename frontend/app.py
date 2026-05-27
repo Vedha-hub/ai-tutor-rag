@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import uuid
 
 API_URL = "http://localhost:8000"
 
@@ -15,6 +16,16 @@ st.title("🎓 AI Tutor — RAG-Based Learning Assistant")
 with st.sidebar:
     st.header("📄 Upload Course Material")
     uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
+    st.caption(f"Session: {st.session_state.session_id[:8]}...")
+    
+    # Clear memory button
+    if st.button("🔄 Clear Chat History"):
+        requests.post(
+            f"{API_URL}/clear-memory",
+            json={"session_id": st.session_state.session_id}
+        )
+        st.session_state.messages = []
+        st.rerun()
 
     if uploaded_file and st.button("Ingest PDF"):
         with st.spinner("Processing PDF..."):
