@@ -58,3 +58,15 @@ async def ask_tutor(request: QuestionRequest):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    # Add this import at top of main.py:
+from memory import get_memory, clear_memory
+class ClearRequest(BaseModel):
+    session_id: str = "default"
+
+@app.post("/clear-memory")
+async def clear_session(request: ClearRequest):
+    clear_memory(request.session_id)
+    return {
+        "status": "success",
+        "message": f"Memory cleared for session {request.session_id}"
+    }
