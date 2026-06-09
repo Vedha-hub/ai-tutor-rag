@@ -4,8 +4,10 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from quiz import generate_quiz
 
 load_dotenv()
+
 
 app = FastAPI(
     title="AI Tutor API",
@@ -70,3 +72,26 @@ async def clear_session(request: ClearRequest):
         "status": "success",
         "message": f"Memory cleared for session {request.session_id}"
     }
+
+class QuizRequest(BaseModel):
+    topic: str
+
+# Add endpoint:
+@app.post("/generate-quiz")
+async def create_quiz(request: QuizRequest):
+    if not request.topic.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Topic cannot be empty"
+        )
+    try:
+        questions = generate_quiz(request.topic)
+        return {
+            "topic": request.topic,
+            "questions": questions
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
