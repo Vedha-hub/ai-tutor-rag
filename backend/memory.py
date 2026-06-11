@@ -1,23 +1,32 @@
-from langchain.memory import ConversationBufferMemory
+import time
 
-# Store one memory object per session
 _sessions: dict = {}
 
-def get_memory(session_id: str) -> ConversationBufferMemory:
-    """Return existing memory or create new one."""
+def get_memory(session_id: str) -> list:
     if session_id not in _sessions:
-        _sessions[session_id] = ConversationBufferMemory(
-            memory_key="chat_history",
-            return_messages=True,
-            output_key="answer"
-        )
+        _sessions[session_id] = []
     return _sessions[session_id]
 
+def add_to_memory(session_id: str, question: str, answer: str):
+    memory = get_memory(session_id)
+    memory.append({
+        "question": question,
+        "answer": answer,
+        "timestamp": time.strftime("%H:%M:%S")
+    })
+
+def get_chat_history(session_id: str) -> str:
+    memory = get_memory(session_id)
+    if not memory:
+        return ""
+    history = ""
+    for turn in memory[-5:]:
+        history += f"Human: {turn['question']}\nAssistant: {turn['answer']}\n\n"
+    return history.strip()
+
 def clear_memory(session_id: str):
-    """Reset conversation history for a session."""
     if session_id in _sessions:
         del _sessions[session_id]
 
 def get_all_sessions() -> list:
-    """Return list of all active session IDs."""
     return list(_sessions.keys())

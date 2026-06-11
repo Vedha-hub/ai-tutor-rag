@@ -1,4 +1,5 @@
 import os
+import time
 from dotenv import load_dotenv
 import chromadb
 from google import genai
