@@ -19,6 +19,14 @@ if "session_id" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# 2. CRITICAL INITIALIZATION: Set up session_id right here!
+if "session_id" not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())
+
+# 3. Initialize your messages list as well to prevent the next crash
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
 # ── SIDEBAR: PDF Upload ──────────────────────
 with st.sidebar:
     st.header("📄 Upload Course Material")

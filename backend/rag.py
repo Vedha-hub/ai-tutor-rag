@@ -9,13 +9,11 @@ load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # ── Two separate clients ───────────────────────────────────────────────────────
-# v1 for embeddings (gemini-embedding-001 lives here)
 genai_client = genai.Client(
     api_key=GOOGLE_API_KEY,
     http_options={"api_version": "v1"}
 )
 
-# v1beta for LLM generation (newer models like gemini-3.5-flash live here)
 genai_client_gen = genai.Client(
     api_key=GOOGLE_API_KEY,
     http_options={"api_version": "v1beta"}
@@ -23,7 +21,10 @@ genai_client_gen = genai.Client(
 
 # ── ChromaDB ───────────────────────────────────────────────────────────────────
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
-collection = chroma_client.get_collection("course_docs")
+
+def get_collection():
+    """Get collection lazily — only when needed."""
+    return chroma_client.get_collection("course_docs")
 
 # ── Prompt ─────────────────────────────────────────────────────────────────────
 STRICT_PROMPT = """You are an expert academic tutor.
@@ -49,11 +50,11 @@ def get_query_embedding(text: str) -> list[float]:
     return result.embeddings[0].values
 
 
-def retrieve_docs(question: str, k: int = 3) -> tuple[str, list[dict]]:
+def retrieve_docs(question: str, k: int = 5) -> tuple[str, list[dict]]:
     """Query ChromaDB and return context string + sources."""
     query_embedding = get_query_embedding(question)
 
-    results = collection.query(
+    results = get_collection().query(
         query_embeddings=[query_embedding],
         n_results=k,
         include=["documents", "metadatas"]
@@ -76,7 +77,7 @@ def retrieve_docs(question: str, k: int = 3) -> tuple[str, list[dict]]:
 
 
 def call_gemini(prompt_text: str) -> str:
-    """Call Gemini 3.5 Flash using v1beta client with retry on quota errors."""
+    """Call Gemini 3.5 Flash with retry on quota errors."""
     for attempt in range(3):
         try:
             response = genai_client_gen.models.generate_content(
@@ -87,7 +88,7 @@ def call_gemini(prompt_text: str) -> str:
         except Exception as e:
             if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
                 wait = 20 * (attempt + 1)
-                print(f"  Quota hit, waiting {wait}s before retry...")
+                print(f"Quota hit, waiting {wait}s...")
                 time.sleep(wait)
             else:
                 raise
@@ -96,39 +97,19 @@ def call_gemini(prompt_text: str) -> str:
 
 def ask_question(question: str) -> dict:
     """Run question through Gemini RAG pipeline."""
-
     if not question or not question.strip():
-        return {
-            "answer": "Please ask a valid question.",
-            "sources": []
-        }
+        return {"answer": "Please ask a valid question.", "sources": []}
 
     try:
-        # Step 1: Retrieve relevant chunks from ChromaDB
         context, sources = retrieve_docs(question, k=5)
-
-        # Step 2: Fill prompt
-        filled_prompt = STRICT_PROMPT.format(
-            context=context,
-            question=question
-        )
-
-        # Step 3: Call Gemini
+        filled_prompt = STRICT_PROMPT.format(context=context, question=question)
         answer = call_gemini(filled_prompt)
-
-        return {
-            "answer": answer,
-            "sources": sources
-        }
+        return {"answer": answer, "sources": sources}
 
     except Exception as e:
-        return {
-            "answer": f"Error generating answer: {str(e)}",
-            "sources": []
-        }
+        return {"answer": f"Error generating answer: {str(e)}", "sources": []}
 
 
-# ── Quick terminal test ────────────────────────────────────────────────────────
 if __name__ == "__main__":
     print("RAG system ready. Type your question (or 'quit' to exit).\n")
     while True:

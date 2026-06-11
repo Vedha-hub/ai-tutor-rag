@@ -98,18 +98,10 @@ def store_in_chromadb(chunks):
 
 
 def ingest_pdf(pdf_path: str):
-    """Main entry point: load, chunk, embed, store."""
-    if not GOOGLE_API_KEY:
-        raise ValueError(
-            "GOOGLE_API_KEY not found!\n"
-            "Open backend/.env and make sure it has:\n"
-            "GOOGLE_API_KEY=your-actual-key-here"
-        )
-
     chunks = load_and_chunk_pdf(pdf_path)
     collection = store_in_chromadb(chunks)
     print("🎉 Ingestion complete! PDF is ready for Q&A.")
-    return collection
+    return {"chunks_created": len(chunks)}
 
 
 if __name__ == "__main__":
