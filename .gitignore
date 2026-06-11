@@ -11,3 +11,5 @@ myenv/
 venv/
 venv_old/
 start.bat
+test_gemini.py
+test_content.pdf
