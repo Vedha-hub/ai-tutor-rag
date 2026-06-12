@@ -1,9 +1,9 @@
 import os
-import time
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from pinecone_store import store_in_pinecone
+from document_registry import add_document
 
 load_dotenv()
 
@@ -31,8 +31,15 @@ def ingest_pdf(pdf_path: str) -> dict:
     if not os.getenv("PINECONE_API_KEY"):
         raise ValueError("PINECONE_API_KEY not found in .env")
 
+    # Use the original filename (without tmp/ path) as the source identifier
+    source_name = os.path.basename(pdf_path)
+
     chunks = load_and_chunk_pdf(pdf_path)
-    result = store_in_pinecone(chunks)
+    result = store_in_pinecone(chunks, source_name=source_name)
+
+    # Register this document so it can be listed/managed later
+    add_document(source_name, result["chunks_created"])
+
     print("🎉 Ingestion complete!")
     return result
 

@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from routers import ingest, chat, quiz, memory
+from routers import ingest, chat, quiz, memory,documents
 
 load_dotenv()
 
@@ -24,6 +24,7 @@ app.include_router(ingest.router)
 app.include_router(chat.router)
 app.include_router(quiz.router)
 app.include_router(memory.router)
+app.include_router(documents.router)
 
 @app.get("/health")
 async def health_check():

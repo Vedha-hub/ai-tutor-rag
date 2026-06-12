@@ -13,3 +13,4 @@ venv_old/
 start.bat
 test_gemini.py
 test_content.pdf
+document_registry.json
