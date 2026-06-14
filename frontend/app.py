@@ -242,7 +242,7 @@ with st.sidebar:
     st.markdown("---")
 
     st.markdown("**📄 Upload Course Material**")
-    uploaded_file = st.file_uploader("", type=["pdf"], label_visibility="collapsed")
+    uploaded_file = st.file_uploader("Upload PDF", type=["pdf"], label_visibility="collapsed")
 
     if uploaded_file:
         st.markdown(f"**{uploaded_file.name}** · {uploaded_file.size/1024:.1f} KB")
@@ -275,7 +275,6 @@ with st.sidebar:
                 unsafe_allow_html=True
             )
         if st.button("🗑️ Clear Document History", use_container_width=True):
-            # Delete all documents from Pinecone
             for doc in st.session_state.ingested_docs:
                 try:
                     requests.delete(
@@ -420,11 +419,11 @@ with tab2:
                     """, unsafe_allow_html=True)
 
                     selected = st.radio(
-                        label="",
-                        options=q["options"],
-                        key=f"q_{i}",
-                        index=None,
-                        label_visibility="collapsed"
+                    label=f"Question {i+1}",
+                    options=q["options"],
+                    key=f"q_{i}",
+                    index=None,
+                    label_visibility="collapsed"
                     )
                     st.session_state.quiz_answers[i] = selected
 
