@@ -86,7 +86,7 @@ def call_gemini(prompt_text: str) -> str:
             )
             return response.text
         except Exception as e:
-            if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+            if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e) or "503" in str(e) or "UNAVAILABLE" in str(e):
                 wait = 20 * (attempt + 1)
                 print(f"Quota hit, waiting {wait}s...")
                 time.sleep(wait)
