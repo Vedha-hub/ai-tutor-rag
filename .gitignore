@@ -13,8 +13,8 @@ venv_old/
 start.bat
 test_gemini.py
 test_content.pdf
+<<<<<<<<< Temporary merge branch 1
 document_registry.json
-.env
-venv/
-__pycache__/
-tmp/
+=========
+backend/document_registry.json
+>>>>>>>>> Temporary merge branch 2
