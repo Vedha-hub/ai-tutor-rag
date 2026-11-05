@@ -45,6 +45,11 @@ def sanitize_id(name: str) -> str:
     safe = "".join(c if c.isalnum() else "_" for c in name)
     return safe.strip("_")
 
+def sanitize_id(name: str) -> str:
+    """Make a string safe to use as part of a Pinecone vector ID."""
+    safe = "".join(c if c.isalnum() else "_" for c in name)
+    return safe.strip("_")
+
 
 def store_in_pinecone(chunks, source_name: str = "document") -> dict:
     """Embed chunks and store in Pinecone, namespaced by source filename."""
@@ -113,6 +118,21 @@ def query_pinecone(question: str, k: int = 5, source_file: str = None) -> tuple[
     query_embedding = get_embedding([question])[0]
     query_kwargs = {
         "vector": query_vector,
+        "top_k": k,
+        "include_metadata": True
+    }
+
+    if source_file:
+        query_kwargs["filter"] = {"source_file": {"$eq": source_file}}
+
+    result = genai_client.models.embed_content(
+        model="gemini-embedding-001",
+        contents=[question],
+    )
+    query_embedding = result.embeddings[0].values
+
+    query_kwargs = {
+        "vector": query_embedding,
         "top_k": k,
         "include_metadata": True
     }
