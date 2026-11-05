@@ -13,4 +13,8 @@ venv_old/
 start.bat
 test_gemini.py
 test_content.pdf
-backend/document_registry.json
+document_registry.json
+.env
+venv/
+__pycache__/
+tmp/
