@@ -1,10 +1,14 @@
 import os
-import time
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from pinecone_store import store_in_pinecone
+from document_registry import add_document
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
+embeddings_model = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+)
 load_dotenv()
 
 
@@ -31,8 +35,13 @@ def ingest_pdf(pdf_path: str) -> dict:
     if not os.getenv("PINECONE_API_KEY"):
         raise ValueError("PINECONE_API_KEY not found in .env")
 
+    source_name = os.path.basename(pdf_path)
+
     chunks = load_and_chunk_pdf(pdf_path)
-    result = store_in_pinecone(chunks)
+    result = store_in_pinecone(chunks, source_name=source_name)
+
+    add_document(source_name, result["chunks_created"])
+
     print("🎉 Ingestion complete!")
     return result
 
