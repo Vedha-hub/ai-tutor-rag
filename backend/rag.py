@@ -1,9 +1,8 @@
 import os
 import time
 from dotenv import load_dotenv
-import chromadb
 from google import genai
-
+from pinecone_store import query_pinecone
 load_dotenv()
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -19,12 +18,6 @@ genai_client_gen = genai.Client(
     http_options={"api_version": "v1beta"}
 )
 
-# ── ChromaDB ───────────────────────────────────────────────────────────────────
-chroma_client = chromadb.PersistentClient(path="./chroma_db")
-
-def get_collection():
-    """Get collection lazily — only when needed."""
-    return chroma_client.get_collection("course_docs")
 
 # ── Prompt ─────────────────────────────────────────────────────────────────────
 STRICT_PROMPT = """You are an expert academic tutor.
@@ -41,39 +34,12 @@ Question: {question}
 Answer:"""
 
 
-def get_query_embedding(text: str) -> list[float]:
-    """Embed the user question using Gemini v1."""
-    result = genai_client.models.embed_content(
-        model="gemini-embedding-001",
-        contents=[text],
-    )
-    return result.embeddings[0].values
+
 
 
 def retrieve_docs(question: str, k: int = 5) -> tuple[str, list[dict]]:
-    """Query ChromaDB and return context string + sources."""
-    query_embedding = get_query_embedding(question)
-
-    results = get_collection().query(
-        query_embeddings=[query_embedding],
-        n_results=k,
-        include=["documents", "metadatas"]
-    )
-
-    documents = results["documents"][0]
-    metadatas = results["metadatas"][0]
-
-    context = "\n\n".join(documents)
-
-    sources = []
-    for doc, meta in zip(documents, metadatas):
-        sources.append({
-            "page": meta.get("page", "unknown"),
-            "source": meta.get("source", "unknown"),
-            "snippet": " ".join(doc[:150].split()) + "..."
-        })
-
-    return context, sources
+    """Retrieve relevant chunks from Pinecone."""
+    return query_pinecone(question, k=k)
 
 
 def call_gemini(prompt_text: str) -> str:
